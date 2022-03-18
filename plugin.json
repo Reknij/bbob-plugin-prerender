@@ -1,0 +1,6 @@
+{
+    "name": "bbob-plugin-prerender",
+    "author": "Jinker",
+    "description": "To generate static page to solve seo.",
+    "entry": "bbob-plugin-prerender.dll"
+}

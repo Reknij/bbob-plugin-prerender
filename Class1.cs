@@ -7,6 +7,7 @@ namespace bbob_plugin_prerender;
 public class Class1 : IPlugin
 {
     ThemeInfo themeInfo;
+    MyConfig myConfig;
     public Class1()
     {
         themeInfo = PluginHelper.getThemeInfo<ThemeInfo>() ?? new ThemeInfo();
@@ -30,6 +31,13 @@ public class Class1 : IPlugin
             themeInfo.prerender.enable = false;
         }
         if (themeInfo.prerender.enable) CheckGitignore();
+
+        myConfig = GetMyConfig();
+    }
+    private MyConfig GetMyConfig()
+    {
+        PluginHelper.getPluginJsonConfig<MyConfig>(out MyConfig? tar);
+        return tar ?? new MyConfig();
     }
     public class ThemeInfo
     {
@@ -65,6 +73,20 @@ public class Class1 : IPlugin
         }
     }
 
+    public void InitCommand()
+    {
+        if (!PluginHelper.isPluginJsonConfigExists())
+        {
+            myConfig = new MyConfig();
+            PluginHelper.savePluginJsonConfig<MyConfig>(myConfig);
+            PluginHelper.printConsole("Initialize config done.");
+        }
+        else
+        {
+            PluginHelper.printConsole("Already exists config.");
+        }
+    }
+
     public Action? CommandComplete(Commands cmd)
     {
         if (cmd == Commands.GenerateCommand)
@@ -80,27 +102,22 @@ public class Class1 : IPlugin
                 Server server = new Server(url, PluginHelper.ConfigBbob.baseUrl, PluginHelper.DistributionDirectory);
                 server.Start();
 
-                GenerateStatic generateStatic = new GenerateStatic(PluginHelper.DistributionDirectory);
+                GenerateStatic generateStatic = new GenerateStatic(PluginHelper.DistributionDirectory, myConfig);
                 List<Task> tasks = new List<Task>();
                 PluginHelper.getRegisteredObject<List<dynamic>>("links", out List<dynamic>? links);
                 if (links == null) return;
-                int generateCount = 0;
-                int cacheCount = 0;
                 foreach (var link in links)
                 {
                     string address = link.address;
                     string real = $"{url}{themeInfo.articleBaseUrlShort}{address}";
-                    bool modified = isModifed(link.address, link.contentHash);
-                    if (modified) generateCount++;
-                    else cacheCount++;
-                    tasks.Add(generateStatic.GenerateHtml(real, modified));
+                    tasks.Add(generateStatic.GenerateHtml(real, isModifed(link.address, link.contentHash)));
                 }
                 foreach (var otherUrl in themeInfo.prerender.otherUrls)
                 {
                     tasks.Add(generateStatic.GenerateHtml($"{url}{otherUrl}", true, false));
                 }
                 Task.WaitAll(tasks.ToArray());
-                PluginHelper.printConsole($"Done! {generateCount} Generated, {cacheCount} Use cache.");
+                PluginHelper.printConsole($"Done! {generateStatic.RegenerateCount} Generated, {generateStatic.UseCacheCount} Use cache.");
                 generateStatic.Stop();
             };
         }

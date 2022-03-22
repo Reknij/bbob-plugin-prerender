@@ -11,6 +11,7 @@ This plugin require theme support. Default theme already support it. It will wor
 # Requirement
 If want prerender work, you must enable the `shortAddress` in the config `BuildWebArticleJson` plugin.
 ```
+// ./configs/BuildWebArticleJson.config.json
 {
     "shortAddress": true, //change to true
     "shortAddressEndWithSlash": false //If dont want your blog have 301 status redirect. Turn it on.
@@ -23,6 +24,7 @@ If want your theme support this plugin, please insert `prerender` object to `the
 
 Example:
 ```
+// ./themes/yourTheme/theme.json
 {
     "name": "themeName",
     "description": "some description",

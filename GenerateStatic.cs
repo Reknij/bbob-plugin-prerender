@@ -83,7 +83,7 @@ public class GenerateStatic : IDisposable
 
     public async Task WriteTextAsync(string filePath, string text)
     {
-        byte[] encodedText = System.Text.Encoding.Unicode.GetBytes(text);
+        byte[] encodedText = System.Text.Encoding.UTF8.GetBytes(text);
 
         using (FileStream sourceStream = new FileStream(filePath,
             FileMode.Create, FileAccess.Write, FileShare.None,

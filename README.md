@@ -1,9 +1,9 @@
 # Install
 Use command:
 ```
-bbob add -a https://github.com/Reknij/bbob-plugin-prerender/releases/download/v1.1.0/bbob-plugin-prerender.rar
+bbob add -a https://github.com/Reknij/bbob-plugin-prerender/releases/download/v1.1.1/bbob-plugin-prerender.rar
 ```
-Please change 'v1.1.0' to you expect version for install in address.
+Please change 'v1.1.1' to you expect version for install in address.
 
 # How to use
 This plugin require theme support. Default theme already support it. It will working which you installed.

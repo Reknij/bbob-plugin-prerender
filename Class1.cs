@@ -1,5 +1,7 @@
 ﻿using Bbob.Plugin;
 using System.Text.Json;
+using System.Text.Json.Nodes;
+using System.Text.RegularExpressions;
 
 namespace bbob_plugin_prerender;
 
@@ -31,7 +33,32 @@ public class Class1 : IPlugin
             themeInfo.prerender.enable = false;
         }
         if (themeInfo.prerender.enable) CheckGitignore();
-
+        if (!themeInfo.prerender.fixedVersion)
+        {
+            PluginHelper.printConsole("Theme has updated, will regenerate all page.");
+            string pp = Path.Combine(PluginHelper.CurrentDirectory, "prerender");
+            if (Directory.Exists(pp)) Directory.Delete(pp, true);
+            string file = Path.Combine(PluginHelper.ThemePath, "theme.json");
+            if (File.Exists(file))
+            {
+                using (FileStream fs = File.Open(file, FileMode.Open))
+                {
+                    var root = JsonNode.Parse(fs);
+                    if (root != null)
+                    {
+                        JsonNode? prerender = root["prerender"];
+                        if (prerender != null)
+                        {
+                            prerender.AsObject().Remove("fixedVersion");
+                            prerender.AsObject().Add("fixedVersion", true);
+                            fs.Flush();
+                            fs.Position = 0;
+                            JsonSerializer.Serialize(fs, root, new JsonSerializerOptions() { WriteIndented = true });
+                        }
+                    }
+                }
+            }
+        }
         myConfig = GetMyConfig();
     }
     private MyConfig GetMyConfig()
@@ -45,6 +72,7 @@ public class Class1 : IPlugin
         public class Prerender
         {
             public bool enable { get; set; } = false;
+            public bool fixedVersion { get; set; } = false;
             public string[] otherUrls { get; set; } = Array.Empty<string>();
         }
         public Prerender prerender { get; set; } = new Prerender();

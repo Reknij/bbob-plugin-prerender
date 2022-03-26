@@ -51,7 +51,7 @@ public class Class1 : IPlugin
                         {
                             prerender.AsObject().Remove("fixedVersion");
                             prerender.AsObject().Add("fixedVersion", true);
-                            fs.Flush();
+                            fs.SetLength(0);
                             fs.Position = 0;
                             JsonSerializer.Serialize(fs, root, new JsonSerializerOptions() { WriteIndented = true });
                         }

@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Bbob.Plugin" Version="1.1.1" />
+    <PackageReference Include="Bbob.Plugin" Version="1.2.0" />
     <PackageReference Include="Puppeteersharp" Version="6.2.0" />
   </ItemGroup>
 

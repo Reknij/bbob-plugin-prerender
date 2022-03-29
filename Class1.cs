@@ -60,6 +60,19 @@ public class Class1 : IPlugin
             }
         }
         myConfig = GetMyConfig();
+        PluginHelper.registerCustomCommand("clear", (args)=>
+        {
+            string pp = Path.Combine(PluginHelper.CurrentDirectory, "prerender");
+            if (Directory.Exists(pp))
+            {
+                 Directory.Delete(pp, true);
+                 PluginHelper.printConsole("Clear cache success!");
+            }
+            else
+            {
+                PluginHelper.printConsole("No found cache.");
+            }
+        });
     }
     private MyConfig GetMyConfig()
     {

@@ -33,11 +33,35 @@ public class Class1 : IPlugin
             themeInfo.prerender.enable = false;
         }
         if (themeInfo.prerender.enable) CheckGitignore();
+        checkCache();
+
+        myConfig = GetMyConfig();
+        PluginHelper.registerCustomCommand("clear", (args) =>
+        {
+            string pp = Path.Combine(PluginHelper.CurrentDirectory, "prerender");
+            if (Directory.Exists(pp))
+            {
+                ClearCache();
+                PluginHelper.printConsole("Clear cache success!");
+            }
+            else
+            {
+                PluginHelper.printConsole("No found cache.");
+            }
+        });
+    }
+
+    private void checkCache()
+    {
+        string pp = Path.Combine(PluginHelper.CurrentDirectory, "prerender");
+        if (!Directory.Exists(pp)) return;
+        
+        const string WCAC = "Will clear all cache.";
         if (!themeInfo.prerender.fixedVersion)
         {
-            PluginHelper.printConsole("Theme has updated, will regenerate all page.");
-            string pp = Path.Combine(PluginHelper.CurrentDirectory, "prerender");
-            if (Directory.Exists(pp)) Directory.Delete(pp, true);
+            PluginHelper.printConsole($"Theme has updated. {WCAC}");
+            ClearCache();
+
             string file = Path.Combine(PluginHelper.ThemePath, "theme.json");
             if (File.Exists(file))
             {
@@ -59,20 +83,25 @@ public class Class1 : IPlugin
                 }
             }
         }
-        myConfig = GetMyConfig();
-        PluginHelper.registerCustomCommand("clear", (args)=>
+        else
         {
-            string pp = Path.Combine(PluginHelper.CurrentDirectory, "prerender");
-            if (Directory.Exists(pp))
+            string ps = Path.Combine(pp, "prerenderStatus.json");
+            PrerenderStatus? prerenderStatus = null;
+            if (File.Exists(ps) && (prerenderStatus = JsonSerializer.Deserialize<PrerenderStatus>(File.ReadAllText(ps))) != null)
             {
-                 Directory.Delete(pp, true);
-                 PluginHelper.printConsole("Clear cache success!");
+                if (prerenderStatus.pluginsHash != PluginHelper.PluginsLoaded.GetHashCode().ToString())
+                {
+                    ClearCache();
+                    PluginHelper.printConsole($"Has plugin modified. {WCAC}");
+                }
             }
-            else
-            {
-                PluginHelper.printConsole("No found cache.");
-            }
-        });
+        }
+    }
+
+    private void ClearCache()
+    {
+        string pp = Path.Combine(PluginHelper.CurrentDirectory, "prerender");
+        if (Directory.Exists(pp)) Directory.Delete(pp, true);
     }
     private MyConfig GetMyConfig()
     {
@@ -168,6 +197,7 @@ public class Class1 : IPlugin
     public class PrerenderStatus
     {
         public Dictionary<string, string> lastModified { get; set; } = new();
+        public string pluginsHash { get; set; } = "";
     }
 
     /// <summary>

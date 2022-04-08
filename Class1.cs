@@ -10,6 +10,7 @@ public class Class1 : IPlugin
 {
     ThemeInfo themeInfo;
     MyConfig myConfig;
+    PrerenderStatusManager PSM = new PrerenderStatusManager();
     public Class1()
     {
         themeInfo = PluginHelper.getThemeInfo<ThemeInfo>() ?? new ThemeInfo();
@@ -33,6 +34,7 @@ public class Class1 : IPlugin
             themeInfo.prerender.enable = false;
         }
         if (themeInfo.prerender.enable) CheckGitignore();
+
         checkCache();
 
         myConfig = GetMyConfig();
@@ -55,12 +57,13 @@ public class Class1 : IPlugin
     {
         string pp = Path.Combine(PluginHelper.CurrentDirectory, "prerender");
         if (!Directory.Exists(pp)) return;
-        
+
         const string WCAC = "Will clear all cache.";
+        bool needClear = false;
         if (!themeInfo.prerender.fixedVersion)
         {
             PluginHelper.printConsole($"Theme has updated. {WCAC}");
-            ClearCache();
+            needClear = true;
 
             string file = Path.Combine(PluginHelper.ThemePath, "theme.json");
             if (File.Exists(file))
@@ -83,25 +86,36 @@ public class Class1 : IPlugin
                 }
             }
         }
-        else
+        if (PSM.Main.pluginsHash != PluginHelper.HashPluginsLoaded)
         {
-            string ps = Path.Combine(pp, "prerenderStatus.json");
-            PrerenderStatus? prerenderStatus = null;
-            if (File.Exists(ps) && (prerenderStatus = JsonSerializer.Deserialize<PrerenderStatus>(File.ReadAllText(ps))) != null)
+            if (!needClear)
             {
-                if (prerenderStatus.pluginsHash != PluginHelper.PluginsLoaded.GetHashCode().ToString())
-                {
-                    ClearCache();
-                    PluginHelper.printConsole($"Has plugin modified. {WCAC}");
-                }
+                needClear = true;
+                PluginHelper.printConsole($"Has plugin modified. {WCAC}");
             }
+            PSM.Main.pluginsHash = PluginHelper.HashPluginsLoaded;
+            PSM.Save();
         }
+        if (needClear) ClearCache();
     }
 
     private void ClearCache()
     {
         string pp = Path.Combine(PluginHelper.CurrentDirectory, "prerender");
-        if (Directory.Exists(pp)) Directory.Delete(pp, true);
+        if (Directory.Exists(pp))
+        {
+            var dirs = Directory.GetDirectories(pp);
+            var files = Directory.GetFiles(pp);
+            foreach (var dir in dirs)
+            {
+                Directory.Delete(dir, true);
+            }
+            foreach (var file in files)
+            {
+                if (file == PrerenderStatusManager.FilePath) continue;
+                File.Delete(file);
+            }
+        }
     }
     private MyConfig GetMyConfig()
     {
@@ -176,11 +190,14 @@ public class Class1 : IPlugin
                 List<Task> tasks = new List<Task>();
                 PluginHelper.getRegisteredObject<List<dynamic>>("links", out List<dynamic>? links);
                 if (links == null) return;
+                bool modified = false;
                 foreach (var link in links)
                 {
                     string address = link.address;
                     string real = $"{url}{themeInfo.articleBaseUrlShort}{address}";
-                    tasks.Add(generateStatic.GenerateHtml(real, isModifed(link.address, link.contentHash)));
+                    bool regenerate = isModifed(link.address, link.contentHash);
+                    modified = regenerate ? true : modified;
+                    tasks.Add(generateStatic.GenerateHtml(real, regenerate));
                 }
                 foreach (var otherUrl in themeInfo.prerender.otherUrls)
                 {
@@ -189,16 +206,16 @@ public class Class1 : IPlugin
                 Task.WaitAll(tasks.ToArray());
                 PluginHelper.printConsole($"Done! {generateStatic.RegenerateCount} Generated, {generateStatic.UseCacheCount} Use cache.");
                 generateStatic.Stop();
+                if (modified) PSM.Save();
+                PSM.Close();
             };
         }
         return null;
     }
 
-    public class PrerenderStatus
-    {
-        public Dictionary<string, string> lastModified { get; set; } = new();
-        public string pluginsHash { get; set; } = "";
-    }
+
+
+
 
     /// <summary>
     /// True if modified. If modified will update to prerenderStatus.json.
@@ -208,35 +225,16 @@ public class Class1 : IPlugin
     /// <returns></returns>
     private bool isModifed(string identifier, string hash)
     {
-        string psPath = Path.Combine(MyHelper.prerenderDirectory, "prerenderStatus.json");
-        if (!File.Exists(psPath))
+        if (PSM.Main != null)
         {
-            Directory.CreateDirectory(MyHelper.prerenderDirectory);
-            using FileStream fs = File.OpenWrite(psPath);
-            var p = new PrerenderStatus();
-            p.lastModified.Add(identifier, hash);
-            JsonSerializer.Serialize(fs, p);
-            return true;
-        }
-        using (FileStream fs = File.Open(psPath, FileMode.Open))
-        {
-            PrerenderStatus prerenderStatus = JsonSerializer.Deserialize<PrerenderStatus>(fs) ?? new PrerenderStatus();
-            bool modified = false;
-            if (!prerenderStatus.lastModified.ContainsKey(identifier))
+            if (!PSM.Main.lastModified.ContainsKey(identifier))
             {
-                prerenderStatus.lastModified.Add(identifier, hash);
-                modified = true;
+                PSM.Main.lastModified.Add(identifier, hash);
+                return true;
             }
-            else if (prerenderStatus.lastModified[identifier] != hash)
+            else if (PSM.Main.lastModified[identifier] != hash)
             {
-                prerenderStatus.lastModified[identifier] = hash;
-                modified = true;
-            }
-            if (modified)
-            {
-                fs.Flush();
-                fs.Position = 0;
-                JsonSerializer.Serialize(fs, prerenderStatus);
+                PSM.Main.lastModified[identifier] = hash;
                 return true;
             }
         }

@@ -5,7 +5,7 @@ namespace bbob_plugin_prerender;
 
 public class PrerenderStatusManager
 {
-    public static readonly string FilePath = Path.Combine(PluginHelper.CurrentDirectory, "prerender", "prerenderStatus.json");
+    public static readonly string FilePath = Path.Combine(MyHelper.prerenderDirectory, "prerenderStatus.json");
     public PrerenderStatus Main { get; private set; }
     private FileStream RWStream;
     public bool Closed { get; private set; }

@@ -2,5 +2,6 @@
     "name": "bbob-plugin-prerender",
     "author": "Jinker",
     "description": "To generate static page to solve seo.",
-    "entry": "bbob-plugin-prerender.dll"
+    "entry": "bbob-plugin-prerender.dll",
+    "version": "1.3.0"
 }

@@ -17,6 +17,14 @@ If want prerender work, you must enable the `shortAddress` in the config `BuildW
     "shortAddressEndWithSlash": false //If dont want your blog have 301 status redirect. Turn it on.
 }
 ```
+Or use command to auto set:
+```
+bbob run BuildWebArticleJson config shortAddress true
+```
+Set `shortAddressEndWithSlash`:
+```
+bbob run BuildWebArticleJson config shortAddressEndWithSlash true
+```
 
 # Theme support(Developmemt)
 If want your theme support this plugin, please insert `prerender` object to `theme.json`. And then make sure your theme have `articleBaseUrlShort`, and it is param url not the query url.

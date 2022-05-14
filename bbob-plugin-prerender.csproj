@@ -5,11 +5,11 @@
     <RootNamespace>bbob_plugin_prerender</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Version>1.3.0</Version>
+    <Version>1.4.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="bbob.plugin" Version="1.3.0" />
+    <PackageReference Include="bbob.plugin" Version="1.4.0" />
     <PackageReference Include="Puppeteersharp" Version="6.2.0" />
   </ItemGroup>
 

@@ -27,9 +27,15 @@ public class GenerateStatic : IDisposable
         this.browser.Dispose();
     }
 
+    ~GenerateStatic()
+    {
+        this.Dispose();
+    }
+
     public void Stop()
     {
         this.browser.CloseAsync().Wait();
+        PluginHelper.printConsole("Stopped prerender server.");
     }
 
     /// <summary>

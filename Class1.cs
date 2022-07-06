@@ -187,6 +187,7 @@ public class Class1 : IPlugin
                 server.Start();
 
                 GenerateStatic generateStatic = new GenerateStatic(PluginHelper.DistributionDirectory, myConfig);
+                PluginHelper.Events.ProgramExited += (sender, e) => generateStatic.Dispose();
                 List<Task> tasks = new List<Task>();
                 PluginHelper.getRegisteredObject<List<dynamic>>("links", out List<dynamic>? links);
                 if (links == null) return;
@@ -204,18 +205,15 @@ public class Class1 : IPlugin
                     tasks.Add(generateStatic.GenerateHtml($"{url}{otherUrl}", true, false));
                 }
                 Task.WaitAll(tasks.ToArray());
-                PluginHelper.printConsole($"Done! {generateStatic.RegenerateCount} Generated, {generateStatic.UseCacheCount} Use cache.");
                 generateStatic.Stop();
+
+                PluginHelper.printConsole($"Done! {generateStatic.RegenerateCount} Generated, {generateStatic.UseCacheCount} Use cache.");
                 if (modified) PSM.Save();
                 PSM.Close();
             };
         }
         return null;
     }
-
-
-
-
 
     /// <summary>
     /// True if modified. If modified will update to prerenderStatus.json.

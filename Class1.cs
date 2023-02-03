@@ -14,9 +14,9 @@ public class Class1 : IPlugin
     public Class1()
     {
         themeInfo = PluginHelper.getThemeInfo<ThemeInfo>() ?? new ThemeInfo();
-        if (themeInfo.articleBaseUrlShort != null)
+        if (themeInfo.articleBaseUrl != null)
         {
-            if (themeInfo.articleBaseUrlShort.Contains('?'))
+            if (themeInfo.articleBaseUrl.Contains('?'))
             {
                 themeInfo.prerender.enable = false;
                 PluginHelper.printConsole("articleBaseUrlShort is query url! Prerender is not support query.");
@@ -24,14 +24,7 @@ public class Class1 : IPlugin
         }
         else
         {
-            PluginHelper.printConsole("articleBaseUrlShort from theme info is not support!");
-        }
-        PluginHelper.getPluginJsonConfig<BWAJ>("BuildWebArticleJson", out BWAJ? bwaj);
-        bool isShortAddress = bwaj?.shortAddress ?? false;
-        if (!isShortAddress)
-        {
-            PluginHelper.printConsole("BuildWebArticleJson config 'shortAddress' is disable. Prerender only support short address.");
-            themeInfo.prerender.enable = false;
+            PluginHelper.printConsole("Theme is not support prerender because it don't have `articleBaseUrl` data.");
         }
         if (themeInfo.prerender.enable) CheckGitignore();
 
@@ -124,7 +117,7 @@ public class Class1 : IPlugin
     }
     public class ThemeInfo
     {
-        public string? articleBaseUrlShort { get; set; }
+        public string? articleBaseUrl { get; set; }
         public class Prerender
         {
             public bool enable { get; set; } = false;
@@ -132,10 +125,6 @@ public class Class1 : IPlugin
             public string[] otherUrls { get; set; } = Array.Empty<string>();
         }
         public Prerender prerender { get; set; } = new Prerender();
-    }
-    public class BWAJ
-    {
-        public bool shortAddress { get; set; } = false;
     }
 
     public void CheckGitignore()
@@ -175,13 +164,13 @@ public class Class1 : IPlugin
     {
         if (cmd == Commands.GenerateCommand)
         {
-            if (!themeInfo.prerender.enable || themeInfo.articleBaseUrlShort == null) return null;
+            if (themeInfo.articleBaseUrl == null) return null;
 
             PluginHelper.registerMeta("prerenderNow", false);
 
             return () =>
             {
-                PluginHelper.printConsole("Generate static pages...");
+                PluginHelper.printConsole("Initialize generate static page server...");
                 string url = $"http://localhost:{MyHelper.GetAvailablePort(1024)}";
                 Server server = new Server(url, PluginHelper.ConfigBbob.baseUrl, PluginHelper.DistributionDirectory);
                 server.Start();
@@ -191,12 +180,12 @@ public class Class1 : IPlugin
                 List<Task> tasks = new List<Task>();
                 PluginHelper.getRegisteredObject<List<dynamic>>("links", out List<dynamic>? links);
                 if (links == null) return;
+                PluginHelper.printConsole("Generate static pages...");
                 bool modified = false;
                 foreach (var link in links)
                 {
-                    string address = link.address;
-                    string real = $"{url}{themeInfo.articleBaseUrlShort}{address}";
-                    bool regenerate = isModifed(link.address, link.contentHash);
+                    string real = $"{url}{themeInfo.articleBaseUrl}{link.id}";
+                    bool regenerate = isModifed(link.id, link.contentHash);
                     modified = regenerate ? true : modified;
                     tasks.Add(generateStatic.GenerateHtml(real, regenerate));
                 }

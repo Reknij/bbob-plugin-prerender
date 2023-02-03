@@ -1,34 +1,16 @@
 # Install
 Use command:
 ```
-bbob add -a https://github.com/Reknij/bbob-plugin-prerender/releases/download/v1.4.1/bbob-plugin-prerender.rar
+bbob add -a https://github.com/Reknij/bbob-plugin-prerender/releases/download/v1.5.0/bbob-plugin-prerender.rar
 ```
-Please change 'v1.4.1' to you expect version for install in address.
+Please change 'v1.5.0' to you expect version for install in address.
 
 # How to use
 This plugin require theme support. Default theme already support it. It will working which you installed.
 
-# Requirement
-If want prerender work, you must enable the `shortAddress` in the config `BuildWebArticleJson` plugin.
-```
-// ./configs/BuildWebArticleJson.config.json
-{
-    "shortAddress": true, //change to true
-    "shortAddressEndWithSlash": false //If dont want your blog have 301 status redirect. Turn it on.
-}
-```
-Or use command to auto set:
-```
-bbob run BuildWebArticleJson config shortAddress true
-```
-Set `shortAddressEndWithSlash`:
-```
-bbob run BuildWebArticleJson config shortAddressEndWithSlash true
-```
-
 # Theme support(Developmemt)
-If want your theme support this plugin, please insert `prerender` object to `theme.json`. And then make sure your theme have `articleBaseUrlShort`, and it is param url not the query url.
-`articleBaseUrlShort` is let prerender know article web page of your theme. Example your article page url is 'https://myDomain/article/myFirstArticle', so `articleBaseUrlShort` value is `/article/`.
+If want your theme support this plugin, please insert `prerender` object to `theme.json`. And then make sure your theme have `articleBaseUrl`, and it is param url not the query url.
+`articleBaseUrl` is let prerender know article web page of your theme. Example your article page url is 'https://myDomain/article/myFirstArticle', so `articleBaseUrl` value is `/article/`.
 
 Example:
 ```
@@ -37,7 +19,7 @@ Example:
     "name": "themeName",
     "description": "some description",
     "author": "authorName",
-    "articleBaseUrlShort": "/article/",
+    "articleBaseUrl": "/article/",
 
     "prerender": {
         "enable": true,

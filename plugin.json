@@ -3,5 +3,5 @@
     "author": "Jinker",
     "description": "To generate static page to solve seo.",
     "entry": "bbob-plugin-prerender.dll",
-    "version": "1.4.1"
+    "version": "1.5.0"
 }
